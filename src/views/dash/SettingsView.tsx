@@ -12,7 +12,7 @@ export function SettingsView() {
   return (
     <section className="view rise">
       <p className="kicker">Settings</p>
-      <h1 className="view-title">Account &amp; TikTok</h1>
+      <h1 className="view-title">Account & TikTok</h1>
 
       <div className="settings-grid">
         <div className="panel">
@@ -22,7 +22,7 @@ export function SettingsView() {
             <div><dt>Email</dt><dd>{user.email ?? <span className="dim">Not set — signed up with TikTok</span>}</dd></div>
             <div><dt>Signs in with</dt><dd>{user.signInMethod === 'tiktok' ? 'TikTok' : 'Email & password'}</dd></div>
             <div><dt>Member since</dt><dd>{fmtDate(user.createdAt)}</dd></div>
-            <div><dt>Cloud library</dt><dd>{saved.length} videos · {totalMB.toFixed(1)} MB</dd></div>
+            <div><dt>Your cloud library</dt><dd>{saved.length} videos · {totalMB.toFixed(1)} MB</dd></div>
           </dl>
         </div>
 
@@ -46,7 +46,7 @@ export function SettingsView() {
             </>
           ) : (
             <div className="connect-inline">
-              <p className="muted">No TikTok account connected.</p>
+              <p className="muted">No TikTok account connected. You can still save videos to your cloud.</p>
               <ConnectButton />
             </div>
           )}
@@ -56,7 +56,7 @@ export function SettingsView() {
       <div className="panel logout-panel">
         <div>
           <h2>Log out</h2>
-          <p className="muted">Your saved videos stay in your cloud library and will be here when you log back in.</p>
+          <p className="muted">Your saved videos stay in your Keepclip cloud and will be here when you log back in. There is no switch-account option.</p>
         </div>
         <button
           className="btn btn-danger"
