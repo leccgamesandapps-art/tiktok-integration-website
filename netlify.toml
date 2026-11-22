@@ -2,8 +2,29 @@
   command = "npm run build"
   publish = "dist"
 
-# /index is listed as the home page URL in the product spec.
+# Clean URLs (no .html required)
 [[redirects]]
   from = "/index"
   to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/start"
+  to = "/start.html"
+  status = 200
+
+[[redirects]]
+  from = "/dashboard"
+  to = "/dashboard.html"
+  status = 200
+
+# Legacy folder URLs → new root files
+[[redirects]]
+  from = "/start/"
+  to = "/start.html"
+  status = 301
+
+[[redirects]]
+  from = "/dashboard/"
+  to = "/dashboard.html"
   status = 301
