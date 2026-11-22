@@ -114,13 +114,11 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 function TikTokConsent({ mode }: { mode: Mode }) {
   const [busy, setBusy] = useState(false)
 
-  // DEMO until user says "start TikTok Auth".
+  // Real TikTok Login Kit
   const authorize = () => {
     setBusy(true)
-    setTimeout(() => {
-      actions.continueWithTikTok()
-      location.href = '/dashboard.html#home'
-    }, 1100)
+    // Redirect to our Netlify function → TikTok authorization page
+    location.href = `/api/auth/tiktok?mode=${mode}`
   }
 
   return (
