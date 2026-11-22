@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Logo } from '../components/Brand'
 import { IconArchive, IconGear, IconHome, IconLink } from '../components/Icons'
-import { useHash, useStore } from '../lib'
+import { applyTikTokProfile, useHash, useStore } from '../lib'
 import { HomeView } from './dash/HomeView'
 import { LinkView, LinkResultView } from './dash/LinkView'
 import { SavedView, SavedDetailView } from './dash/SavedView'
@@ -18,12 +18,34 @@ export function DashboardPage() {
   const { user, saved } = useStore()
   const hash = useHash() || 'home'
 
+  // Handle TikTok OAuth return: /dashboard.html#home?tiktok=<base64url>
   useEffect(() => {
-    if (!user) location.replace('/start.html#signin')
+    try {
+      const params = new URLSearchParams(location.search)
+      const payload = params.get('tiktok')
+      if (payload) {
+        const json = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
+        applyTikTokProfile(json)
+        // Clean the URL so refresh does not re-apply
+        const clean = location.pathname + (location.hash || '#home')
+        history.replaceState(null, '', clean)
+      }
+    } catch (e) {
+      console.error('Failed to apply TikTok profile', e)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!user) {
+      // Give OAuth payload a moment to apply before redirecting
+      const t = setTimeout(() => {
+        if (!useStore().user) location.replace('/start.html#signin')
+      }, 400)
+      return () => clearTimeout(t)
+    }
   }, [user])
 
   useEffect(() => {
-    // Direct visit to dashboard.html with no hash → #home
     if (!location.hash) location.hash = 'home'
     window.scrollTo(0, 0)
   }, [hash])
