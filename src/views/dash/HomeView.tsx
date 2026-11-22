@@ -18,7 +18,7 @@ export function HomeView() {
         <div className="connect-card">
           <span className="consent-ico"><IconNote size={28} /></span>
           <h2>Connect your TikTok account</h2>
-          <p className="muted">Your account details appear here once TikTok is connected.</p>
+          <p className="muted">Your profile details appear here once TikTok is connected. Your cloud library already works — you can save videos even without connecting TikTok.</p>
           <ConnectButton />
         </div>
       </section>
@@ -38,14 +38,14 @@ export function HomeView() {
             <div><dt>Followers</dt><dd>{fmtCount(t.followers)}</dd></div>
             <div><dt>Following</dt><dd>{fmtCount(t.following)}</dd></div>
             <div><dt>Likes</dt><dd>{fmtCount(t.likes)}</dd></div>
-            <div><dt>Saved here</dt><dd>{saved.length}</dd></div>
+            <div><dt>In your cloud</dt><dd>{saved.length}</dd></div>
           </dl>
         </div>
       </div>
 
       <div className="row-head">
         <h2>Recently saved</h2>
-        <a href="#saved" className="textlink">Open library <IconArrow size={14} /></a>
+        <a href="#saved" className="textlink">Open cloud library <IconArrow size={14} /></a>
       </div>
       {saved.length ? (
         <div className="recent">
@@ -59,7 +59,7 @@ export function HomeView() {
         </div>
       ) : (
         <div className="empty">
-          <p>No saved videos yet.</p>
+          <p>No videos in your cloud yet.</p>
           <a className="btn btn-ink" href="#link">Save your first link</a>
         </div>
       )}
