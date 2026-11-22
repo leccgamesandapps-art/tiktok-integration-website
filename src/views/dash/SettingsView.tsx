@@ -62,7 +62,7 @@ export function SettingsView() {
           className="btn btn-danger"
           onClick={() => {
             actions.logout()
-            location.href = '/start#signin'
+            location.href = '/start.html#signin'
           }}
         >
           <IconLogout /> Log out
