@@ -1,6 +1,7 @@
 [build]
   command = "npm run build"
   publish = "dist"
+  functions = "netlify/functions"
 
 # Clean URLs (no .html required)
 [[redirects]]
@@ -28,3 +29,14 @@
   from = "/dashboard/"
   to = "/dashboard.html"
   status = 301
+
+# TikTok Login Kit routes
+[[redirects]]
+  from = "/api/auth/tiktok"
+  to = "/.netlify/functions/auth-tiktok"
+  status = 200
+
+[[redirects]]
+  from = "/api/auth/tiktok/callback"
+  to = "/.netlify/functions/auth-tiktok-callback"
+  status = 200
