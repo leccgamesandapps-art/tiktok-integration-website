@@ -3,7 +3,7 @@ import { IconBack, IconDownload, IconExternal, IconPause, IconPlay, IconTrash } 
 import { Modal } from '../../components/Modal'
 import { Poster } from '../../components/Poster'
 import { toast } from '../../components/Toast'
-import { actions, downloadVideo, fmtDate, fmtDateTime, fmtDuration, go, savedHash, useStore, type SavedVideo } from '../../lib'
+import { actions, downloadVideo, fmtDate, fmtDateTime, fmtDuration, go, openTikTok, savedHash, useStore, type SavedVideo } from '../../lib'
 
 type Sort = 'saved' | 'published'
 
@@ -21,7 +21,7 @@ export function SavedView() {
   return (
     <section className="view rise">
       <p className="kicker">Saved · {saved.length} videos · {totalMB.toFixed(1)} MB in your cloud</p>
-      <h1 className="view-title">Your library</h1>
+      <h1 className="view-title">Your cloud library</h1>
 
       {saved.length > 0 && (
         <div className="toolbar">
@@ -35,7 +35,7 @@ export function SavedView() {
 
       {saved.length === 0 ? (
         <div className="empty">
-          <p>Nothing saved yet. Paste a TikTok link to start your archive.</p>
+          <p>Nothing in your cloud yet. Paste a TikTok link to start your archive.</p>
           <a className="btn btn-ink" href="#link">Add a link</a>
         </div>
       ) : list.length === 0 ? (
@@ -89,7 +89,7 @@ export function DeleteDialog({ video, onClose, onDone }: { video: SavedVideo | n
             {video.sourceRemoved && <strong className="warn"> The original is no longer on TikTok — this is the only copy.</strong>}
           </p>
           <div className="modal-actions">
-            <button className="btn btn-ink" onClick={() => finish(true)}><IconDownload size={16} /> Download &amp; delete permanently</button>
+            <button className="btn btn-ink" onClick={() => finish(true)}><IconDownload size={16} /> Download & delete permanently</button>
             <button className="btn btn-danger" onClick={() => finish(false)}><IconTrash size={16} /> Delete permanently</button>
             <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
           </div>
@@ -118,7 +118,7 @@ export function SavedDetailView({ hash }: { hash: string }) {
       <div className="detail">
         <Player video={video} />
         <div className="detail-info">
-          <p className="kicker">Saved video</p>
+          <p className="kicker">Saved in your cloud</p>
           <h1 className="view-title sm">{video.caption}</h1>
           <dl className="facts">
             <div><dt>Published by</dt><dd>@{video.username} <span className="dim">· {video.authorName}</span></dd></div>
@@ -133,7 +133,13 @@ export function SavedDetailView({ hash }: { hash: string }) {
           <div className="actions">
             <button className="btn btn-ink" onClick={() => { downloadVideo(video); toast('Download started') }}><IconDownload /> Download</button>
             {!video.sourceRemoved && (
-              <a className="btn btn-ghost" href={video.link} target="_blank" rel="noopener noreferrer"><IconExternal /> View on TikTok</a>
+              <button
+                className="btn btn-ghost"
+                type="button"
+                onClick={() => openTikTok(video.link)}
+              >
+                <IconExternal /> View on TikTok
+              </button>
             )}
             <button className="btn btn-danger" onClick={() => setToDelete(video)}><IconTrash /> Delete</button>
           </div>
