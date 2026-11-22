@@ -32,7 +32,9 @@ export const slug = (s: string) =>
     .replace(/[\s_]+/g, '-')
     .slice(0, 48)
     .replace(/-+$/, '')
-export const savedHash = (v: { caption: string; username: string }) => `saved_${slug(v.caption)}_${v.username}`
+
+/** New format: #saved_<videoId>  (was #saved_caption_username) */
+export const savedHash = (v: { videoId: string }) => `saved_${v.videoId}`
 
 /**
  * Prefer opening the TikTok app when possible.
@@ -47,12 +49,10 @@ export function openTikTok(link: string) {
       return
     }
 
-    // Extract video path for deep link: snssdk1233://aweme/detail/{id}
     const match = url.pathname.match(/\/video\/(\d+)/)
     if (match) {
       const videoId = match[1]
       const deep = `snssdk1233://aweme/detail/${videoId}`
-      // Try deep link first (works on mobile if TikTok is installed)
       const a = document.createElement('a')
       a.href = deep
       a.style.display = 'none'
@@ -60,7 +60,6 @@ export function openTikTok(link: string) {
       a.click()
       document.body.removeChild(a)
 
-      // Fallback to web after a short delay if the app didn't open
       setTimeout(() => {
         window.open(link, '_blank', 'noopener,noreferrer')
       }, 900)
@@ -72,7 +71,7 @@ export function openTikTok(link: string) {
   window.open(link, '_blank', 'noopener,noreferrer')
 }
 
-/* ---------- stub session + library (browser-only preview; replaced by API in PLAN.md) ---------- */
+/* ---------- stub session + library ---------- */
 export type User = {
   id: string
   email: string | null
@@ -147,7 +146,6 @@ export const actions = {
   },
 }
 
-/** Preview download: a metadata receipt. The real MP4 download arrives with cloud storage (PLAN.md, milestone 4). */
 export function downloadVideo(v: SavedVideo) {
   const body = JSON.stringify(
     { caption: v.caption, username: `@${v.username}`, published: v.publishedAt, savedOnKeepclip: v.savedAt, link: v.link },
