@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+.vite/
+
+# Environment & secrets — NEVER commit real keys
+.env
+.env.local
+.env.*.local
+secrets/
+*.secret
+.secrets
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
