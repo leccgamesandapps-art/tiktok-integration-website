@@ -10,34 +10,38 @@ const STEPS = [
     icon: <IconNote size={22} />,
     title: 'Create your account — or just use TikTok',
     body: 'Sign up with email, or skip the form and continue with TikTok. Email accounts can connect TikTok later from the dashboard.',
-    where: '/start#signup',
+    where: '/start.html#signup',
   },
   {
     n: '02',
     icon: <IconLink size={22} />,
     title: 'Paste any TikTok video link',
     body: 'Open Link in your dashboard and drop in a link copied from the TikTok share sheet. We show the caption, the creator and the publish date before you commit.',
-    where: '/dashboard#link',
+    where: '/dashboard.html#link',
   },
   {
     n: '03',
     icon: <IconArchive size={22} />,
     title: 'Press Save — the video goes to your cloud',
     body: 'The video file and its details are copied into your private Keepclip library. The record notes who published it, when, and the day you saved it.',
-    where: '/dashboard#saved',
+    where: '/dashboard.html#saved',
   },
   {
     n: '04',
     icon: <IconDownload size={22} />,
     title: 'Watch, download, or delete — even if TikTok forgets',
     body: 'If a creator removes the original, your saved copy stays playable here. Download it any time, or delete it permanently (with a last-chance download).',
-    where: '/dashboard#saved',
+    where: '/dashboard.html#saved',
   },
 ]
 
 export function HomePage() {
   const { user } = useStore()
   const [a, b, c] = KNOWN_VIDEOS
+
+  // Start button: if account exists → dashboard, else → start page
+  const startHref = user ? '/dashboard.html#home' : '/start.html#signup'
+
   return (
     <div className="page home">
       <div className="grain" aria-hidden />
@@ -47,11 +51,11 @@ export function HomePage() {
           <a href="#how">How it works</a>
           <a href="#record">What gets saved</a>
           {user ? (
-            <a className="btn btn-ink" href="/dashboard#home">Open dashboard <IconArrow size={16} /></a>
+            <a className="btn btn-ink" href="/dashboard.html#home">Open dashboard <IconArrow size={16} /></a>
           ) : (
             <>
-              <a href="/start#signin">Log in</a>
-              <a className="btn btn-ink" href="/start#signup">Get started</a>
+              <a href="/start.html#signin">Log in</a>
+              <a className="btn btn-ink" href="/start.html#signup">Get started</a>
             </>
           )}
         </nav>
@@ -67,10 +71,16 @@ export function HomePage() {
             Keepclip saves TikTok videos into your own cloud library — with the caption, the creator, and the date it was posted. Deleted on TikTok? Still here, still playable, still downloadable.
           </p>
           <div className="hero-ctas">
-            <a className="btn btn-accent btn-lg" href="/start#signup_usingTiktok"><IconNote /> Sign up with TikTok</a>
-            <a className="btn btn-ghost btn-lg" href="/start#signup">Use email instead</a>
+            <a className="btn btn-accent btn-lg" href={startHref}>
+              {user ? <>Open dashboard <IconArrow size={16} /></> : <><IconNote /> Get started</>}
+            </a>
+            {!user && (
+              <a className="btn btn-ghost btn-lg" href="/start.html#signup_usingTiktok">Sign up with TikTok</a>
+            )}
           </div>
-          <p className="fine">Already saving? <a href="/start#signin">Log in</a> · <a href="/start#signin_usingTiktok">Log in with TikTok</a></p>
+          {!user && (
+            <p className="fine">Already saving? <a href="/start.html#signin">Log in</a> · <a href="/start.html#signin_usingTiktok">Log in with TikTok</a></p>
+          )}
         </div>
 
         <div className="hero-stack rise d2" aria-hidden>
@@ -129,8 +139,12 @@ export function HomePage() {
       <section className="closer">
         <h2>Start your archive in under a minute.</h2>
         <div className="hero-ctas">
-          <a className="btn btn-accent btn-lg" href="/start#signup_usingTiktok"><IconNote /> Continue with TikTok</a>
-          <a className="btn btn-ghost btn-lg" href="/start#signup">Sign up with email</a>
+          <a className="btn btn-accent btn-lg" href={startHref}>
+            {user ? <>Open dashboard <IconArrow size={16} /></> : <><IconNote /> Get started</>}
+          </a>
+          {!user && (
+            <a className="btn btn-ghost btn-lg" href="/start.html#signup">Sign up with email</a>
+          )}
         </div>
       </section>
 
