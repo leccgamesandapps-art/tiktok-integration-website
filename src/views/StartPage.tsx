@@ -31,7 +31,7 @@ export function StartPage() {
         {user && (
           <div className="notice">
             You’re logged in as <strong>{user.tiktok ? `@${user.tiktok.username}` : user.email}</strong>.
-            <a href="/dashboard#home">Go to dashboard <IconArrow size={14} /></a>
+            <a href="/dashboard.html#home">Go to dashboard <IconArrow size={14} /></a>
           </div>
         )}
 
@@ -60,7 +60,7 @@ function EmailForm({ mode }: { mode: Mode }) {
     setBusy(true)
     setTimeout(() => {
       up ? actions.signUpEmail(name.trim(), email.trim()) : actions.signInEmail(email.trim())
-      location.href = '/dashboard#home'
+      location.href = '/dashboard.html#home'
     }, 700)
   }
 
@@ -115,12 +115,11 @@ function TikTokConsent({ mode }: { mode: Mode }) {
   const [busy, setBusy] = useState(false)
 
   // DEMO until user says "start TikTok Auth".
-  // Real credentials stay in environment variables / secret file only.
   const authorize = () => {
     setBusy(true)
     setTimeout(() => {
       actions.continueWithTikTok()
-      location.href = '/dashboard#home'
+      location.href = '/dashboard.html#home'
     }, 1100)
   }
 
