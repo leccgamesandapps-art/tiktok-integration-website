@@ -3,7 +3,7 @@ import { IconArchive, IconBack, IconBookmark, IconCheck, IconExternal } from '..
 import { Poster } from '../../components/Poster'
 import { toast } from '../../components/Toast'
 import { lookupTikTokVideo, parseTikTokLink, type TikTokVideo } from '../../fixtures'
-import { actions, fmtCount, fmtDateTime, go, savedHash, useStore } from '../../lib'
+import { actions, fmtCount, fmtDateTime, go, openTikTok, savedHash, useStore } from '../../lib'
 
 const EXAMPLES = [
   'https://www.tiktok.com/@kestrel.field/video/7312200398817460522',
@@ -23,7 +23,7 @@ export function LinkView() {
     <section className="view rise">
       <p className="kicker">Link</p>
       <h1 className="view-title">Paste a TikTok link</h1>
-      <p className="muted">In TikTok, tap Share → Copy link, then paste it here.</p>
+      <p className="muted">In TikTok, tap Share → Copy link, then paste it here. The video will be saved to your Keepclip cloud library.</p>
       <form className={`linkbar ${err ? 'has-error' : ''}`} onSubmit={submit}>
         <input
           autoFocus
@@ -96,12 +96,16 @@ export function LinkResultView({ link }: { link: string }) {
                     toast('Saved to your Keepclip cloud')
                   }}
                 >
-                  <IconBookmark /> Save
+                  <IconBookmark /> Save to cloud
                 </button>
               )}
-              <a className="btn btn-ghost" href={video.link} target="_blank" rel="noopener noreferrer">
+              <button
+                className="btn btn-ghost"
+                type="button"
+                onClick={() => openTikTok(video.link)}
+              >
                 <IconExternal /> View on TikTok
-              </a>
+              </button>
             </div>
             {isSaved && <a className="textlink" href="#saved"><IconArchive size={14} /> Go to all saved videos</a>}
           </div>
