@@ -113,13 +113,17 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 
 function TikTokConsent({ mode }: { mode: Mode }) {
   const [busy, setBusy] = useState(false)
+
+  // DEMO MODE: Real TikTok Login Kit will replace this when the app is approved
+  // and Netlify environment variables (TIKTOK_CLIENT_KEY / TIKTOK_CLIENT_SECRET) are set.
   const authorize = () => {
     setBusy(true)
     setTimeout(() => {
       actions.continueWithTikTok()
       location.href = '/dashboard#home'
-    }, 1100)
+    }, 1200)
   }
+
   return (
     <div className="auth-card consent rise">
       <button className="back" onClick={() => go(mode)}><IconBack size={16} /> Back</button>
@@ -129,7 +133,10 @@ function TikTokConsent({ mode }: { mode: Mode }) {
         <span className="logo-mark big">K</span>
       </div>
       <h1>{mode === 'signup' ? 'Sign up with TikTok' : 'Log in with TikTok'}</h1>
-      <p className="muted">You’ll be sent to TikTok to approve access, then brought straight back to your dashboard.</p>
+      <p className="muted">
+        Demo mode is active. This simulates the real TikTok Login flow so you can test the full website.
+        When the TikTok app is approved, this will redirect to the real TikTok authorization page.
+      </p>
       <div className="perm">
         <p className="mono">Keepclip will be able to read</p>
         <ul>
@@ -140,7 +147,7 @@ function TikTokConsent({ mode }: { mode: Mode }) {
         <p className="mono dim">Keepclip never posts, comments or follows on your behalf.</p>
       </div>
       <button className="btn btn-tiktok btn-block" onClick={authorize} disabled={busy}>
-        {busy ? <><span className="spinner" /> Waiting for TikTok…</> : <>Continue to TikTok <IconArrow size={16} /></>}
+        {busy ? <><span className="spinner" /> Connecting…</> : <>Continue with TikTok (Demo) <IconArrow size={16} /></>}
       </button>
       <p className="fine center">
         {mode === 'signup' ? <>Prefer email? <a href="#signup">Sign up with email</a></> : <>Prefer email? <a href="#signin">Log in with email</a></>}
