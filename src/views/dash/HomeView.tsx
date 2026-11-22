@@ -2,8 +2,7 @@ import { useState } from 'react'
 import { Avatar } from '../../components/Brand'
 import { IconArrow, IconNote } from '../../components/Icons'
 import { Poster } from '../../components/Poster'
-import { toast } from '../../components/Toast'
-import { actions, fmtCount, fmtDate, savedHash, useStore } from '../../lib'
+import { fmtCount, fmtDate, savedHash, useStore } from '../../lib'
 
 export function HomeView() {
   const { user, saved } = useStore()
@@ -75,10 +74,8 @@ export function ConnectButton() {
       disabled={busy}
       onClick={() => {
         setBusy(true)
-        setTimeout(() => {
-          actions.connectTikTok()
-          toast('TikTok connected')
-        }, 1000)
+        // Real TikTok Login Kit (connect mode)
+        location.href = '/api/auth/tiktok?mode=connect'
       }}
     >
       {busy ? <><span className="spinner" /> Waiting for TikTok…</> : <><IconNote /> Connect to TikTok</>}
