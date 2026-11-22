@@ -33,13 +33,9 @@ export const slug = (s: string) =>
     .slice(0, 48)
     .replace(/-+$/, '')
 
-/** New format: #saved_<videoId>  (was #saved_caption_username) */
+/** New format: #saved_<videoId> */
 export const savedHash = (v: { videoId: string }) => `saved_${v.videoId}`
 
-/**
- * Prefer opening the TikTok app when possible.
- * Falls back to the normal web link.
- */
 export function openTikTok(link: string) {
   try {
     const url = new URL(link.startsWith('http') ? link : `https://${link}`)
@@ -71,7 +67,7 @@ export function openTikTok(link: string) {
   window.open(link, '_blank', 'noopener,noreferrer')
 }
 
-/* ---------- stub session + library ---------- */
+/* ---------- session + library ---------- */
 export type User = {
   id: string
   email: string | null
@@ -110,6 +106,60 @@ const seedLibrary = (): SavedVideo[] =>
 
 const connectedProfile = (): TikTokProfile => ({ ...DEMO_TIKTOK_PROFILE, connectedAt: new Date().toISOString() })
 
+function hueFromString(s: string) {
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0
+  return h % 360
+}
+
+/** Apply a real TikTok profile returned by the OAuth callback. */
+export function applyTikTokProfile(raw: {
+  openId?: string
+  username: string
+  name: string
+  bio?: string
+  avatarUrl?: string
+  connectedAt?: string
+}) {
+  const profile: TikTokProfile = {
+    username: raw.username,
+    name: raw.name,
+    bio: raw.bio || '',
+    avatarHue: hueFromString(raw.username || raw.name),
+    avatarUrl: raw.avatarUrl,
+    followers: 0,
+    following: 0,
+    likes: 0,
+    videoCount: 0,
+    connectedAt: raw.connectedAt || new Date().toISOString(),
+  }
+
+  if (state.user) {
+    // Connect or upgrade existing account
+    set({
+      user: {
+        ...state.user,
+        displayName: profile.name,
+        signInMethod: state.user.signInMethod || 'tiktok',
+        tiktok: profile,
+      },
+    })
+  } else {
+    // Fresh TikTok sign-in / sign-up
+    set({
+      user: {
+        id: raw.openId || crypto.randomUUID(),
+        email: null,
+        displayName: profile.name,
+        createdAt: new Date().toISOString(),
+        signInMethod: 'tiktok',
+        tiktok: profile,
+      },
+      saved: state.saved.length ? state.saved : seedLibrary(),
+    })
+  }
+}
+
 export const actions = {
   signUpEmail(name: string, email: string) {
     set({
@@ -125,6 +175,7 @@ export const actions = {
     })
   },
   continueWithTikTok() {
+    // Fallback demo path (kept for offline / when OAuth is unavailable)
     const p = connectedProfile()
     set({
       user: { id: crypto.randomUUID(), email: null, displayName: p.name, createdAt: new Date().toISOString(), signInMethod: 'tiktok', tiktok: p },
