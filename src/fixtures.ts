@@ -1,7 +1,6 @@
 /**
- * STUB DATA — every fake TikTok/account value in the app lives here.
- * Later milestones replace these with the TikTok API (Login Kit + Display API)
- * and the Keepclip backend (see PLAN.md).
+ * STUB DATA + shared types.
+ * Real TikTok profiles come from Login Kit OAuth; seed data is used for preview.
  */
 
 export type TikTokProfile = {
@@ -9,6 +8,7 @@ export type TikTokProfile = {
   name: string
   bio: string
   avatarHue: number
+  avatarUrl?: string
   followers: number
   following: number
   likes: number
@@ -87,7 +87,6 @@ export const KNOWN_VIDEOS: TikTokVideo[] = [
   },
 ]
 
-/** Initial library for a new demo account. `sourceRemoved` = deleted on TikTok, still kept here. */
 export const SEED_SAVED: { videoId: string; savedAt: string; sourceRemoved?: boolean; sizeMB: number }[] = [
   { videoId: '7288810046021733662', savedAt: '2026-08-04T21:10:00Z', sourceRemoved: true, sizeMB: 18.4 },
   { videoId: '7301948822150432042', savedAt: '2026-09-15T08:31:00Z', sizeMB: 12.7 },
@@ -129,7 +128,6 @@ export function parseTikTokLink(raw: string): LinkParseResult {
   return { ok: false, reason: 'Use a video link, like tiktok.com/@user/video/123…' }
 }
 
-/** Stub lookup — later milestones call the backend, which resolves the link via TikTok. */
 export async function lookupTikTokVideo(link: string): Promise<TikTokVideo> {
   await new Promise((r) => setTimeout(r, 900))
   const parsed = parseTikTokLink(link)
