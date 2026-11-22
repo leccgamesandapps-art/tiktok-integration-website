@@ -19,9 +19,15 @@ export function DashboardPage() {
   const hash = useHash() || 'home'
 
   useEffect(() => {
-    if (!user) location.replace('/start#signin')
+    if (!user) location.replace('/start.html#signin')
   }, [user])
-  useEffect(() => window.scrollTo(0, 0), [hash])
+
+  useEffect(() => {
+    // Direct visit to dashboard.html with no hash → #home
+    if (!location.hash) location.hash = 'home'
+    window.scrollTo(0, 0)
+  }, [hash])
+
   if (!user) return null
 
   const section = hash.split('_')[0]
