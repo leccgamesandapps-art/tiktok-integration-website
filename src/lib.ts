@@ -34,6 +34,44 @@ export const slug = (s: string) =>
     .replace(/-+$/, '')
 export const savedHash = (v: { caption: string; username: string }) => `saved_${slug(v.caption)}_${v.username}`
 
+/**
+ * Prefer opening the TikTok app when possible.
+ * Falls back to the normal web link.
+ */
+export function openTikTok(link: string) {
+  try {
+    const url = new URL(link.startsWith('http') ? link : `https://${link}`)
+    const host = url.hostname.replace(/^www\.|^m\./, '')
+    if (!['tiktok.com', 'vm.tiktok.com', 'vt.tiktok.com'].includes(host)) {
+      window.open(link, '_blank', 'noopener,noreferrer')
+      return
+    }
+
+    // Extract video path for deep link: snssdk1233://aweme/detail/{id}
+    const match = url.pathname.match(/\/video\/(\d+)/)
+    if (match) {
+      const videoId = match[1]
+      const deep = `snssdk1233://aweme/detail/${videoId}`
+      // Try deep link first (works on mobile if TikTok is installed)
+      const a = document.createElement('a')
+      a.href = deep
+      a.style.display = 'none'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+
+      // Fallback to web after a short delay if the app didn't open
+      setTimeout(() => {
+        window.open(link, '_blank', 'noopener,noreferrer')
+      }, 900)
+      return
+    }
+  } catch {
+    // ignore
+  }
+  window.open(link, '_blank', 'noopener,noreferrer')
+}
+
 /* ---------- stub session + library (browser-only preview; replaced by API in PLAN.md) ---------- */
 export type User = {
   id: string
