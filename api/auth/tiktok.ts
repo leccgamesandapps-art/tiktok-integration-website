@@ -1,24 +1,20 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { getTikTokConfig } from '../tiktok.credentials'
+
+// SERVER-ONLY — Sandbox credentials (file store, not frontend)
+const CLIENT_KEY = 'sbawm6a9sm8ieqe6kj'
+const REDIRECT_URI = 'https://keepclip.vercel.app/api/auth/tiktok/callback'
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
-  const { clientKey, redirectUri } = getTikTokConfig()
-
-  if (!clientKey) {
-    return res.status(500).send('TikTok Client Key is not configured.')
-  }
-
   const mode = (req.query.mode as string) || 'signin'
   const state = Buffer.from(JSON.stringify({ mode, t: Date.now() })).toString('base64url')
 
   const params = new URLSearchParams({
-    client_key: clientKey,
+    client_key: CLIENT_KEY,
     scope: 'user.info.basic',
     response_type: 'code',
-    redirect_uri: redirectUri,
+    redirect_uri: REDIRECT_URI,
     state,
   })
 
-  const authUrl = `https://www.tiktok.com/v2/auth/authorize/?${params.toString()}`
-  res.redirect(302, authUrl)
+  res.redirect(302, `https://www.tiktok.com/v2/auth/authorize/?${params.toString()}`)
 }
