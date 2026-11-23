@@ -18,7 +18,7 @@ export function DashboardPage() {
   const { user, saved } = useStore()
   const hash = useHash() || 'home'
 
-  // Handle TikTok OAuth return: /dashboard#home?tiktok=<base64url>
+  // OAuth return: /dashboard#home?tiktok=...
   useEffect(() => {
     try {
       const params = new URLSearchParams(location.search)
@@ -26,8 +26,7 @@ export function DashboardPage() {
       if (payload) {
         const json = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
         applyTikTokProfile(json)
-        const clean = location.pathname + (location.hash || '#home')
-        history.replaceState(null, '', clean)
+        history.replaceState(null, '', location.pathname + (location.hash || '#home'))
       }
     } catch (e) {
       console.error('Failed to apply TikTok profile', e)
@@ -50,14 +49,26 @@ export function DashboardPage() {
 
   if (!user) return null
 
+  // Routing:
+  // #home #link #saved #settings
+  // #link_tiktoklink  → preview after paste
+  // #saved_<videoId>  → saved video detail
   const section = hash.split('_')[0]
   let view
-  if (hash.startsWith('link_')) view = <LinkResultView link={hash.slice(5)} />
-  else if (hash.startsWith('saved_')) view = <SavedDetailView hash={hash} />
-  else if (section === 'link') view = <LinkView />
-  else if (section === 'saved') view = <SavedView />
-  else if (section === 'settings') view = <SettingsView />
-  else view = <HomeView />
+  if (hash === 'link_tiktoklink' || hash.startsWith('link_')) {
+    const rest = hash === 'link_tiktoklink' ? 'tiktoklink' : hash.slice(5)
+    view = <LinkResultView link={rest} />
+  } else if (hash.startsWith('saved_')) {
+    view = <SavedDetailView hash={hash} />
+  } else if (section === 'link') {
+    view = <LinkView />
+  } else if (section === 'saved') {
+    view = <SavedView />
+  } else if (section === 'settings') {
+    view = <SettingsView />
+  } else {
+    view = <HomeView />
+  }
 
   return (
     <div className="page dash">
