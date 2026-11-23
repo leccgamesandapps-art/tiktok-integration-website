@@ -1,6 +1,5 @@
 /**
- * STUB DATA + shared types.
- * Real TikTok profiles come from Login Kit OAuth; seed data is used for preview.
+ * Shared types + TikTok link parser / lookup stubs.
  */
 
 export type TikTokProfile = {
@@ -23,7 +22,7 @@ export type TikTokVideo = {
   username: string
   authorName: string
   publishedAt: string
-  duration: number // seconds
+  duration: number
   hue: number
   views: number
 }
@@ -107,33 +106,67 @@ function hash(str: string) {
   return h >>> 0
 }
 
-export type LinkParseResult = { ok: true; username: string | null; videoId: string | null; link: string } | { ok: false; reason: string }
+export type LinkParseResult =
+  | { ok: true; username: string | null; videoId: string | null; link: string }
+  | { ok: false; reason: string }
 
 export function parseTikTokLink(raw: string): LinkParseResult {
   const value = raw.trim()
   if (!value) return { ok: false, reason: 'Paste a TikTok link first.' }
+
   let url: URL
   try {
     url = new URL(value.startsWith('http') ? value : `https://${value}`)
   } catch {
     return { ok: false, reason: 'That doesn’t look like a link.' }
   }
-  const host = url.hostname.replace(/^www\.|^m\./, '')
-  if (!['tiktok.com', 'vm.tiktok.com', 'vt.tiktok.com'].includes(host)) {
+
+  const host = url.hostname.replace(/^www\.|^m\./, '').toLowerCase()
+  const allowed = ['tiktok.com', 'vm.tiktok.com', 'vt.tiktok.com', 'www.tiktok.com']
+  if (!allowed.includes(host) && !host.endsWith('tiktok.com')) {
     return { ok: false, reason: 'Only tiktok.com links can be saved.' }
   }
-  const m = url.pathname.match(/@([\w.]+)\/(?:video|photo)\/(\d+)/)
-  if (m) return { ok: true, username: m[1], videoId: m[2], link: `https://www.tiktok.com/@${m[1]}/video/${m[2]}` }
-  if (host !== 'tiktok.com' && url.pathname.length > 2) return { ok: true, username: null, videoId: null, link: url.toString() }
+
+  // @user/video/123 or @user/photo/123
+  const m = url.pathname.match(/@([\w.-]+)\/(?:video|photo)\/(\d+)/)
+  if (m) {
+    return {
+      ok: true,
+      username: m[1],
+      videoId: m[2],
+      link: `https://www.tiktok.com/@${m[1]}/video/${m[2]}`,
+    }
+  }
+
+  // /video/123 without @user
+  const m2 = url.pathname.match(/\/video\/(\d+)/)
+  if (m2) {
+    return {
+      ok: true,
+      username: null,
+      videoId: m2[1],
+      link: `https://www.tiktok.com/video/${m2[1]}`,
+    }
+  }
+
+  // Short links vm.tiktok.com / vt.tiktok.com — accept, resolve later
+  if (host === 'vm.tiktok.com' || host === 'vt.tiktok.com') {
+    if (url.pathname.length > 1) {
+      return { ok: true, username: null, videoId: null, link: url.toString() }
+    }
+  }
+
   return { ok: false, reason: 'Use a video link, like tiktok.com/@user/video/123…' }
 }
 
 export async function lookupTikTokVideo(link: string): Promise<TikTokVideo> {
-  await new Promise((r) => setTimeout(r, 900))
+  await new Promise((r) => setTimeout(r, 600))
   const parsed = parseTikTokLink(link)
   if (!parsed.ok) throw new Error(parsed.reason)
-  const known = KNOWN_VIDEOS.find((v) => v.videoId === parsed.videoId)
+
+  const known = parsed.videoId ? KNOWN_VIDEOS.find((v) => v.videoId === parsed.videoId) : undefined
   if (known) return known
+
   const h = hash(parsed.link)
   const username = parsed.username ?? `creator${h % 9000}`
   const videoId = parsed.videoId ?? String(7200000000000000000n + BigInt(h))
