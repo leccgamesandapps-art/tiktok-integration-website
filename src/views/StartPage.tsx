@@ -9,9 +9,6 @@ export function StartPage() {
   const hash = useHash()
   const { user } = useStore()
 
-  // #signup / #signin → email form
-  // #signup_usingTiktok / #signin_usingTiktok → real TikTok Auth
-  // #connect_TiktokSandbox → sandbox only (optional test)
   const isSandbox = hash === 'connect_TiktokSandbox'
   const isTikTok =
     hash === 'signup_usingTiktok' ||
@@ -49,7 +46,7 @@ export function StartPage() {
         {isTikTok ? (
           <TikTokConsent mode={mode} sandbox={isSandbox} />
         ) : (
-          <EmailForm key={mode === 'connect' ? 'signup' : mode === 'signin' ? 'signin' : 'signup'} mode={mode === 'signin' ? 'signin' : 'signup'} />
+          <EmailForm key={mode === 'signin' ? 'signin' : 'signup'} mode={mode === 'signin' ? 'signin' : 'signup'} />
         )}
       </main>
     </div>
@@ -138,8 +135,13 @@ function TikTokConsent({ mode, sandbox }: { mode: Mode; sandbox?: boolean }) {
 
   const authorize = () => {
     setBusy(true)
-    // Real TikTok Login Kit (Production credentials on server)
-    location.href = `/api/auth/tiktok?mode=${mode}`
+    if (sandbox) {
+      // Real Sandbox Login Kit
+      location.href = `/api/auth/tiktok?mode=connect&sandbox=1`
+    } else {
+      // Real Production Login Kit
+      location.href = `/api/auth/tiktok?mode=${mode}`
+    }
   }
 
   return (
@@ -153,10 +155,13 @@ function TikTokConsent({ mode, sandbox }: { mode: Mode; sandbox?: boolean }) {
         <span className="logo-mark big">K</span>
       </div>
       <h1>{title}</h1>
-      {sandbox && (
-        <p className="muted">Sandbox test mode — only works if your TikTok account is added as a Sandbox test user.</p>
+      {sandbox ? (
+        <p className="muted">
+          Sandbox Login Kit — your TikTok account must be added as a <strong>Sandbox target test user</strong> in the TikTok Developer Portal.
+        </p>
+      ) : (
+        <p className="muted">You’ll be sent to TikTok to approve access, then brought straight back to your dashboard.</p>
       )}
-      <p className="muted">You’ll be sent to TikTok to approve access, then brought straight back to your dashboard.</p>
       <div className="perm">
         <p className="mono">Keepclip will be able to read</p>
         <ul>
