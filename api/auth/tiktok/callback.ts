@@ -1,9 +1,17 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-// SERVER-ONLY — Production KEEPCLIPS credentials
-const CLIENT_KEY = 'awfbpi23q6j68szr'
-const CLIENT_SECRET = 'uxqBXDnw5F8mhPNPRhGC6GRuwMfDiN1r'
-const REDIRECT_URI = 'https://keepclip.vercel.app/api/auth/tiktok/callback'
+const PRODUCTION = {
+  clientKey: 'awfbpi23q6j68szr',
+  clientSecret: 'uxqBXDnw5F8mhPNPRhGC6GRuwMfDiN1r',
+  redirectUri: 'https://keepclip.vercel.app/api/auth/tiktok/callback',
+}
+
+const SANDBOX = {
+  clientKey: 'sbawm6a9sm8ieqe6kj',
+  clientSecret: '9FucqaRYBjpR4OdUcA9BEghAwZTRWKyt',
+  redirectUri: 'https://keepclip.vercel.app/api/auth/tiktok/callback',
+}
+
 const SITE_URL = 'https://keepclip.vercel.app'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -18,16 +26,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.redirect(302, `${SITE_URL}/start#signin?error=missing_code`)
   }
 
+  // Detect sandbox from state
+  let useSandbox = false
+  try {
+    if (state) {
+      const parsed = JSON.parse(Buffer.from(state, 'base64url').toString()) as {
+        sandbox?: boolean
+        mode?: string
+      }
+      useSandbox = !!parsed.sandbox || parsed.mode === 'sandbox' || parsed.mode === 'connect'
+    }
+  } catch {
+    // ignore
+  }
+
+  const cfg = useSandbox ? SANDBOX : PRODUCTION
+
   try {
     const tokenRes = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
-        client_key: CLIENT_KEY,
-        client_secret: CLIENT_SECRET,
+        client_key: cfg.clientKey,
+        client_secret: cfg.clientSecret,
         code,
         grant_type: 'authorization_code',
-        redirect_uri: REDIRECT_URI,
+        redirect_uri: cfg.redirectUri,
       }),
     })
 
@@ -79,7 +103,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const payload = Buffer.from(JSON.stringify(profile)).toString('base64url')
-    void state
     return res.redirect(302, `${SITE_URL}/dashboard#home?tiktok=${payload}`)
   } catch (err) {
     console.error('TikTok callback error', err)
