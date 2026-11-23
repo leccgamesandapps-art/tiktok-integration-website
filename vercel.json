@@ -2,9 +2,20 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
     { "source": "/start", "destination": "/start.html" },
+    { "source": "/start/", "destination": "/start.html" },
     { "source": "/dashboard", "destination": "/dashboard.html" },
-    { "source": "/safety", "destination": "/safety/index.html" }
+    { "source": "/dashboard/", "destination": "/dashboard.html" },
+    { "source": "/safety", "destination": "/safety/index.html" },
+    { "source": "/safety/", "destination": "/safety/index.html" },
+    { "source": "/index", "destination": "/index.html" }
+  ],
+  "redirects": [
+    { "source": "/start.html", "destination": "/start", "permanent": true },
+    { "source": "/dashboard.html", "destination": "/dashboard", "permanent": true },
+    { "source": "/index.html", "destination": "/", "permanent": true }
   ]
 }
