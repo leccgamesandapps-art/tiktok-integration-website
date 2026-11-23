@@ -9,19 +9,18 @@ export function StartPage() {
   const hash = useHash()
   const { user } = useStore()
 
-  // Routes:
-  // #signup / #signin
-  // #signup_usingTiktok / #signin_usingTiktok
-  // #connect_TiktokSandbox
-  const isSandbox = hash === 'connect_TiktokSandbox' || hash.toLowerCase().includes('sandbox')
-  const tiktok =
-    hash.endsWith('_usingTiktok') ||
-    hash === 'connect_TiktokSandbox' ||
-    hash.toLowerCase().includes('tiktok')
+  // #signup / #signin → email form
+  // #signup_usingTiktok / #signin_usingTiktok → real TikTok Auth
+  // #connect_TiktokSandbox → sandbox only (optional test)
+  const isSandbox = hash === 'connect_TiktokSandbox'
+  const isTikTok =
+    hash === 'signup_usingTiktok' ||
+    hash === 'signin_usingTiktok' ||
+    hash === 'connect_TiktokSandbox'
 
   let mode: Mode = 'signup'
   if (hash.startsWith('signin')) mode = 'signin'
-  else if (hash.startsWith('connect') || isSandbox) mode = 'connect'
+  else if (hash.startsWith('connect')) mode = 'connect'
 
   return (
     <div className="page start">
@@ -40,17 +39,17 @@ export function StartPage() {
       </aside>
 
       <main className="start-main">
-        {user && !tiktok && (
+        {user && !isTikTok && (
           <div className="notice">
             You’re logged in as <strong>{user.tiktok ? `@${user.tiktok.username}` : user.email}</strong>.
             <a href="/dashboard#home">Go to dashboard <IconArrow size={14} /></a>
           </div>
         )}
 
-        {tiktok ? (
-          <TikTokConsent mode={mode} sandbox={isSandbox || true} />
+        {isTikTok ? (
+          <TikTokConsent mode={mode} sandbox={isSandbox} />
         ) : (
-          <EmailForm key={mode === 'connect' ? 'signup' : mode} mode={mode === 'connect' ? 'signup' : mode} />
+          <EmailForm key={mode === 'connect' ? 'signup' : mode === 'signin' ? 'signin' : 'signup'} mode={mode === 'signin' ? 'signin' : 'signup'} />
         )}
       </main>
     </div>
@@ -92,9 +91,6 @@ function EmailForm({ mode }: { mode: 'signup' | 'signin' }) {
       <a className="btn btn-tiktok btn-block" href={up ? '#signup_usingTiktok' : '#signin_usingTiktok'}>
         <IconNote /> {up ? 'Sign up with TikTok' : 'Log in with TikTok'}
       </a>
-      <p className="fine center" style={{ marginTop: 8 }}>
-        <a href="#connect_TiktokSandbox">Test with TikTok Sandbox</a>
-      </p>
       <div className="or"><span>or with email</span></div>
 
       <form onSubmit={submit} noValidate>
@@ -142,7 +138,7 @@ function TikTokConsent({ mode, sandbox }: { mode: Mode; sandbox?: boolean }) {
 
   const authorize = () => {
     setBusy(true)
-    // Sandbox credentials are active on the server until Production is approved
+    // Real TikTok Login Kit (Production credentials on server)
     location.href = `/api/auth/tiktok?mode=${mode}`
   }
 
@@ -158,9 +154,7 @@ function TikTokConsent({ mode, sandbox }: { mode: Mode; sandbox?: boolean }) {
       </div>
       <h1>{title}</h1>
       {sandbox && (
-        <p className="muted" style={{ color: 'var(--accent, #fe2c55)' }}>
-          Using TikTok <strong>Sandbox</strong> credentials. Add your account as a Sandbox test user first.
-        </p>
+        <p className="muted">Sandbox test mode — only works if your TikTok account is added as a Sandbox test user.</p>
       )}
       <p className="muted">You’ll be sent to TikTok to approve access, then brought straight back to your dashboard.</p>
       <div className="perm">
@@ -181,7 +175,7 @@ function TikTokConsent({ mode, sandbox }: { mode: Mode; sandbox?: boolean }) {
         ) : mode === 'signin' ? (
           <>Prefer email? <a href="#signin">Log in with email</a></>
         ) : (
-          <><a href="#signin">Back to log in</a></>
+          <a href="#signin">Back to log in</a>
         )}
       </p>
     </div>
