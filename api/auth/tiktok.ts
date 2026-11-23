@@ -1,7 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-// SERVER-ONLY — Production KEEPCLIPS credentials
-const CLIENT_KEY = 'awfbpi23q6j68szr'
+// SERVER-ONLY
+// Production Draft apps are REJECTED by TikTok authorize (client_key error).
+// Use Sandbox until app status is Live/Approved.
+const CLIENT_KEY = 'sbawm6a9sm8ieqe6kj' // Sandbox
 const REDIRECT_URI = 'https://keepclip.vercel.app/api/auth/tiktok/callback'
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
