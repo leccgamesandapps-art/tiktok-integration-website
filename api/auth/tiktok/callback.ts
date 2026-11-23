@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 
-// SERVER-ONLY — Sandbox credentials (file store, not frontend)
-const CLIENT_KEY = 'sbawm6a9sm8ieqe6kj'
-const CLIENT_SECRET = '9FucqaRYBjpR4OdUcA9BEghAwZTRWKyt'
+// SERVER-ONLY — Production KEEPCLIPS credentials
+const CLIENT_KEY = 'awfbpi23q6j68szr'
+const CLIENT_SECRET = 'uxqBXDnw5F8mhPNPRhGC6GRuwMfDiN1r'
 const REDIRECT_URI = 'https://keepclip.vercel.app/api/auth/tiktok/callback'
 const SITE_URL = 'https://keepclip.vercel.app'
 
