@@ -1,7 +1,6 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { DEMO_TIKTOK_PROFILE, SEED_SAVED, videoById, type TikTokProfile, type TikTokVideo } from './fixtures'
+import { DEMO_TIKTOK_PROFILE, type TikTokProfile, type TikTokVideo } from './fixtures'
 
-/* ---------- hash routing ---------- */
 export function useHash() {
   const [hash, setHash] = useState(() => decodeURIComponent(location.hash.slice(1)))
   useEffect(() => {
@@ -15,7 +14,6 @@ export const go = (hash: string) => {
   location.hash = hash
 }
 
-/* ---------- formatting ---------- */
 export const fmtDate = (iso: string) =>
   new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
 export const fmtDateTime = (iso: string) =>
@@ -33,7 +31,6 @@ export const slug = (s: string) =>
     .slice(0, 48)
     .replace(/-+$/, '')
 
-/** New format: #saved_<videoId> */
 export const savedHash = (v: { videoId: string }) => `saved_${v.videoId}`
 
 export function openTikTok(link: string) {
@@ -44,21 +41,16 @@ export function openTikTok(link: string) {
       window.open(link, '_blank', 'noopener,noreferrer')
       return
     }
-
     const match = url.pathname.match(/\/video\/(\d+)/)
     if (match) {
-      const videoId = match[1]
-      const deep = `snssdk1233://aweme/detail/${videoId}`
+      const deep = `snssdk1233://aweme/detail/${match[1]}`
       const a = document.createElement('a')
       a.href = deep
       a.style.display = 'none'
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
-
-      setTimeout(() => {
-        window.open(link, '_blank', 'noopener,noreferrer')
-      }, 900)
+      setTimeout(() => window.open(link, '_blank', 'noopener,noreferrer'), 900)
       return
     }
   } catch {
@@ -67,7 +59,6 @@ export function openTikTok(link: string) {
   window.open(link, '_blank', 'noopener,noreferrer')
 }
 
-/* ---------- session + library ---------- */
 export type User = {
   id: string
   email: string | null
@@ -79,7 +70,7 @@ export type User = {
 export type SavedVideo = TikTokVideo & { savedAt: string; sourceRemoved: boolean; sizeMB: number }
 type State = { user: User | null; saved: SavedVideo[] }
 
-const KEY = 'keepclip.preview.v1'
+const KEY = 'keepclip.cloud.v2'
 let state: State = load()
 const listeners = new Set<() => void>()
 
@@ -101,9 +92,6 @@ const subscribe = (l: () => void) => {
 }
 export const useStore = () => useSyncExternalStore(subscribe, () => state)
 
-const seedLibrary = (): SavedVideo[] =>
-  SEED_SAVED.map((s) => ({ ...videoById(s.videoId)!, savedAt: s.savedAt, sourceRemoved: !!s.sourceRemoved, sizeMB: s.sizeMB }))
-
 const connectedProfile = (): TikTokProfile => ({ ...DEMO_TIKTOK_PROFILE, connectedAt: new Date().toISOString() })
 
 function hueFromString(s: string) {
@@ -112,7 +100,6 @@ function hueFromString(s: string) {
   return h % 360
 }
 
-/** Apply a real TikTok profile returned by the OAuth callback. */
 export function applyTikTokProfile(raw: {
   openId?: string
   username: string
@@ -135,7 +122,6 @@ export function applyTikTokProfile(raw: {
   }
 
   if (state.user) {
-    // Connect or upgrade existing account
     set({
       user: {
         ...state.user,
@@ -145,7 +131,6 @@ export function applyTikTokProfile(raw: {
       },
     })
   } else {
-    // Fresh TikTok sign-in / sign-up
     set({
       user: {
         id: raw.openId || crypto.randomUUID(),
@@ -155,7 +140,7 @@ export function applyTikTokProfile(raw: {
         signInMethod: 'tiktok',
         tiktok: profile,
       },
-      saved: state.saved.length ? state.saved : seedLibrary(),
+      saved: state.saved,
     })
   }
 }
@@ -163,23 +148,43 @@ export function applyTikTokProfile(raw: {
 export const actions = {
   signUpEmail(name: string, email: string) {
     set({
-      user: { id: crypto.randomUUID(), email, displayName: name, createdAt: new Date().toISOString(), signInMethod: 'email', tiktok: null },
-      saved: seedLibrary(),
+      user: {
+        id: crypto.randomUUID(),
+        email,
+        displayName: name,
+        createdAt: new Date().toISOString(),
+        signInMethod: 'email',
+        tiktok: null,
+      },
+      saved: [],
     })
   },
   signInEmail(email: string) {
     if (state.user?.email === email) return set({ user: state.user })
     set({
-      user: { id: crypto.randomUUID(), email, displayName: email.split('@')[0], createdAt: '2026-07-19T10:00:00Z', signInMethod: 'email', tiktok: null },
-      saved: seedLibrary(),
+      user: {
+        id: crypto.randomUUID(),
+        email,
+        displayName: email.split('@')[0],
+        createdAt: new Date().toISOString(),
+        signInMethod: 'email',
+        tiktok: null,
+      },
+      saved: state.saved,
     })
   },
   continueWithTikTok() {
-    // Fallback demo path (kept for offline / when OAuth is unavailable)
     const p = connectedProfile()
     set({
-      user: { id: crypto.randomUUID(), email: null, displayName: p.name, createdAt: new Date().toISOString(), signInMethod: 'tiktok', tiktok: p },
-      saved: state.saved.length ? state.saved : seedLibrary(),
+      user: {
+        id: crypto.randomUUID(),
+        email: null,
+        displayName: p.name,
+        createdAt: new Date().toISOString(),
+        signInMethod: 'tiktok',
+        tiktok: p,
+      },
+      saved: state.saved,
     })
   },
   connectTikTok() {
@@ -190,22 +195,37 @@ export const actions = {
   },
   save(v: TikTokVideo) {
     if (state.saved.some((s) => s.videoId === v.videoId)) return
-    set({ saved: [{ ...v, savedAt: new Date().toISOString(), sourceRemoved: false, sizeMB: +(v.duration * 0.21).toFixed(1) }, ...state.saved] })
+    const sizeMB = v.duration ? +(v.duration * 0.25).toFixed(1) : 5
+    set({
+      saved: [
+        {
+          ...v,
+          savedAt: new Date().toISOString(),
+          sourceRemoved: false,
+          sizeMB,
+        },
+        ...state.saved,
+      ],
+    })
   },
   remove(videoId: string) {
     set({ saved: state.saved.filter((s) => s.videoId !== videoId) })
   },
 }
 
+/** Download real MP4 through our proxy (works for saved cloud videos). */
 export function downloadVideo(v: SavedVideo) {
-  const body = JSON.stringify(
-    { caption: v.caption, username: `@${v.username}`, published: v.publishedAt, savedOnKeepclip: v.savedAt, link: v.link },
-    null,
-    2,
-  )
+  const src = v.downloadUrl || v.playUrl
+  if (!src) {
+    alert('No video file is stored for this entry yet. Paste the link again and Save.')
+    return
+  }
+  const filename = `${slug(v.caption) || 'tiktok'}_${v.username || 'video'}.mp4`
   const a = document.createElement('a')
-  a.href = URL.createObjectURL(new Blob([body], { type: 'application/json' }))
-  a.download = `${slug(v.caption)}_${v.username}.json`
+  a.href = `/api/tiktok/download?src=${encodeURIComponent(src)}&name=${encodeURIComponent(filename)}`
+  a.download = filename
+  a.rel = 'noopener'
+  document.body.appendChild(a)
   a.click()
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000)
+  document.body.removeChild(a)
 }
