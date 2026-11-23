@@ -18,7 +18,7 @@ export function DashboardPage() {
   const { user, saved } = useStore()
   const hash = useHash() || 'home'
 
-  // Handle TikTok OAuth return: /dashboard.html#home?tiktok=<base64url>
+  // Handle TikTok OAuth return: /dashboard#home?tiktok=<base64url>
   useEffect(() => {
     try {
       const params = new URLSearchParams(location.search)
@@ -26,7 +26,6 @@ export function DashboardPage() {
       if (payload) {
         const json = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
         applyTikTokProfile(json)
-        // Clean the URL so refresh does not re-apply
         const clean = location.pathname + (location.hash || '#home')
         history.replaceState(null, '', clean)
       }
@@ -37,9 +36,8 @@ export function DashboardPage() {
 
   useEffect(() => {
     if (!user) {
-      // Give OAuth payload a moment to apply before redirecting
       const t = setTimeout(() => {
-        if (!useStore().user) location.replace('/start.html#signin')
+        if (!useStore().user) location.replace('/start#signin')
       }, 400)
       return () => clearTimeout(t)
     }
