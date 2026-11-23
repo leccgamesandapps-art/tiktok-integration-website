@@ -3,13 +3,25 @@ import { Logo } from '../components/Brand'
 import { IconArrow, IconBack, IconCheck, IconNote } from '../components/Icons'
 import { actions, go, useHash, useStore } from '../lib'
 
-type Mode = 'signup' | 'signin'
+type Mode = 'signup' | 'signin' | 'connect'
 
 export function StartPage() {
   const hash = useHash()
   const { user } = useStore()
-  const tiktok = hash.endsWith('_usingTiktok')
-  const mode: Mode = hash.startsWith('signin') ? 'signin' : 'signup'
+
+  // Routes:
+  // #signup / #signin
+  // #signup_usingTiktok / #signin_usingTiktok
+  // #connect_TiktokSandbox
+  const isSandbox = hash === 'connect_TiktokSandbox' || hash.toLowerCase().includes('sandbox')
+  const tiktok =
+    hash.endsWith('_usingTiktok') ||
+    hash === 'connect_TiktokSandbox' ||
+    hash.toLowerCase().includes('tiktok')
+
+  let mode: Mode = 'signup'
+  if (hash.startsWith('signin')) mode = 'signin'
+  else if (hash.startsWith('connect') || isSandbox) mode = 'connect'
 
   return (
     <div className="page start">
@@ -28,20 +40,24 @@ export function StartPage() {
       </aside>
 
       <main className="start-main">
-        {user && (
+        {user && !tiktok && (
           <div className="notice">
             You’re logged in as <strong>{user.tiktok ? `@${user.tiktok.username}` : user.email}</strong>.
             <a href="/dashboard#home">Go to dashboard <IconArrow size={14} /></a>
           </div>
         )}
 
-        {tiktok ? <TikTokConsent mode={mode} /> : <EmailForm key={mode} mode={mode} />}
+        {tiktok ? (
+          <TikTokConsent mode={mode} sandbox={isSandbox || true} />
+        ) : (
+          <EmailForm key={mode === 'connect' ? 'signup' : mode} mode={mode === 'connect' ? 'signup' : mode} />
+        )}
       </main>
     </div>
   )
 }
 
-function EmailForm({ mode }: { mode: Mode }) {
+function EmailForm({ mode }: { mode: 'signup' | 'signin' }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [pw, setPw] = useState('')
@@ -76,6 +92,9 @@ function EmailForm({ mode }: { mode: Mode }) {
       <a className="btn btn-tiktok btn-block" href={up ? '#signup_usingTiktok' : '#signin_usingTiktok'}>
         <IconNote /> {up ? 'Sign up with TikTok' : 'Log in with TikTok'}
       </a>
+      <p className="fine center" style={{ marginTop: 8 }}>
+        <a href="#connect_TiktokSandbox">Test with TikTok Sandbox</a>
+      </p>
       <div className="or"><span>or with email</span></div>
 
       <form onSubmit={submit} noValidate>
@@ -111,23 +130,38 @@ function Field({ label, error, children }: { label: string; error?: string; chil
   )
 }
 
-function TikTokConsent({ mode }: { mode: Mode }) {
+function TikTokConsent({ mode, sandbox }: { mode: Mode; sandbox?: boolean }) {
   const [busy, setBusy] = useState(false)
+
+  const title =
+    mode === 'signup'
+      ? 'Sign up with TikTok'
+      : mode === 'signin'
+        ? 'Log in with TikTok'
+        : 'Connect TikTok (Sandbox)'
 
   const authorize = () => {
     setBusy(true)
+    // Sandbox credentials are active on the server until Production is approved
     location.href = `/api/auth/tiktok?mode=${mode}`
   }
 
   return (
     <div className="auth-card consent rise">
-      <button className="back" onClick={() => go(mode)}><IconBack size={16} /> Back</button>
+      <button className="back" onClick={() => go(mode === 'connect' ? 'signin' : mode)}>
+        <IconBack size={16} /> Back
+      </button>
       <div className="consent-head">
         <span className="consent-ico"><IconNote size={26} /></span>
         <span className="consent-link" aria-hidden>⇄</span>
         <span className="logo-mark big">K</span>
       </div>
-      <h1>{mode === 'signup' ? 'Sign up with TikTok' : 'Log in with TikTok'}</h1>
+      <h1>{title}</h1>
+      {sandbox && (
+        <p className="muted" style={{ color: 'var(--accent, #fe2c55)' }}>
+          Using TikTok <strong>Sandbox</strong> credentials. Add your account as a Sandbox test user first.
+        </p>
+      )}
       <p className="muted">You’ll be sent to TikTok to approve access, then brought straight back to your dashboard.</p>
       <div className="perm">
         <p className="mono">Keepclip will be able to read</p>
@@ -142,7 +176,13 @@ function TikTokConsent({ mode }: { mode: Mode }) {
         {busy ? <><span className="spinner" /> Waiting for TikTok…</> : <>Continue to TikTok <IconArrow size={16} /></>}
       </button>
       <p className="fine center">
-        {mode === 'signup' ? <>Prefer email? <a href="#signup">Sign up with email</a></> : <>Prefer email? <a href="#signin">Log in with email</a></>}
+        {mode === 'signup' ? (
+          <>Prefer email? <a href="#signup">Sign up with email</a></>
+        ) : mode === 'signin' ? (
+          <>Prefer email? <a href="#signin">Log in with email</a></>
+        ) : (
+          <><a href="#signin">Back to log in</a></>
+        )}
       </p>
     </div>
   )
