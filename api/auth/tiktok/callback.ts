@@ -1,28 +1,22 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-
-const CLIENT_KEY = process.env.TIKTOK_CLIENT_KEY || ''
-const CLIENT_SECRET = process.env.TIKTOK_CLIENT_SECRET || ''
-const REDIRECT_URI =
-  process.env.TIKTOK_REDIRECT_URI ||
-  'https://keepclip.vercel.app/api/auth/tiktok/callback'
-const SITE_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
-  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-  : 'https://keepclip.vercel.app'
+import { getTikTokConfig } from '../../tiktok.credentials'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const { clientKey, clientSecret, redirectUri, siteUrl } = getTikTokConfig()
+
   const code = req.query.code as string | undefined
   const state = req.query.state as string | undefined
   const error = req.query.error as string | undefined
 
   if (error) {
-    return res.redirect(302, `${SITE_URL}/start#signin?error=${encodeURIComponent(error)}`)
+    return res.redirect(302, `${siteUrl}/start#signin?error=${encodeURIComponent(error)}`)
   }
 
   if (!code) {
-    return res.redirect(302, `${SITE_URL}/start#signin?error=missing_code`)
+    return res.redirect(302, `${siteUrl}/start#signin?error=missing_code`)
   }
 
-  if (!CLIENT_KEY || !CLIENT_SECRET) {
+  if (!clientKey || !clientSecret) {
     return res.status(500).send('TikTok credentials are not configured on the server.')
   }
 
@@ -31,11 +25,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
-        client_key: CLIENT_KEY,
-        client_secret: CLIENT_SECRET,
+        client_key: clientKey,
+        client_secret: clientSecret,
         code,
         grant_type: 'authorization_code',
-        redirect_uri: REDIRECT_URI,
+        redirect_uri: redirectUri,
       }),
     })
 
@@ -47,7 +41,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!tokenRes.ok || tokenData.error || !tokenData.access_token) {
       console.error('TikTok token error', tokenData)
-      return res.redirect(302, `${SITE_URL}/start#signin?error=token_failed`)
+      return res.redirect(302, `${siteUrl}/start#signin?error=token_failed`)
     }
 
     const accessToken = tokenData.access_token
@@ -74,7 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!userRes.ok || !user) {
       console.error('TikTok user info error', userData)
-      return res.redirect(302, `${SITE_URL}/start#signin?error=profile_failed`)
+      return res.redirect(302, `${siteUrl}/start#signin?error=profile_failed`)
     }
 
     const profile = {
@@ -98,14 +92,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       // ignore
     }
 
-    const target =
-      mode === 'connect'
-        ? `${SITE_URL}/dashboard#home?tiktok=${payload}`
-        : `${SITE_URL}/dashboard#home?tiktok=${payload}`
-
-    return res.redirect(302, target)
+    void mode
+    return res.redirect(302, `${siteUrl}/dashboard#home?tiktok=${payload}`)
   } catch (err) {
     console.error('TikTok callback error', err)
-    return res.redirect(302, `${SITE_URL}/start#signin?error=server_error`)
+    return res.redirect(302, `${siteUrl}/start#signin?error=server_error`)
   }
 }
