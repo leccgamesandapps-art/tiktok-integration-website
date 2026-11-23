@@ -3,9 +3,14 @@
   publish = "dist"
   functions = "netlify/functions"
 
-# Clean URLs (no .html required)
+# Pretty URLs — no .html in the address bar
 [[redirects]]
   from = "/index"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/index.html"
   to = "/"
   status = 301
 
@@ -15,22 +20,41 @@
   status = 200
 
 [[redirects]]
+  from = "/start/"
+  to = "/start.html"
+  status = 200
+
+[[redirects]]
+  from = "/start.html"
+  to = "/start"
+  status = 301
+
+[[redirects]]
   from = "/dashboard"
   to = "/dashboard.html"
   status = 200
 
-# Legacy folder URLs → new root files
-[[redirects]]
-  from = "/start/"
-  to = "/start.html"
-  status = 301
-
 [[redirects]]
   from = "/dashboard/"
   to = "/dashboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/dashboard.html"
+  to = "/dashboard"
   status = 301
 
-# TikTok Login Kit routes
+[[redirects]]
+  from = "/safety"
+  to = "/safety/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/safety/"
+  to = "/safety/index.html"
+  status = 200
+
+# TikTok Login Kit (Netlify Functions)
 [[redirects]]
   from = "/api/auth/tiktok"
   to = "/.netlify/functions/auth-tiktok"
