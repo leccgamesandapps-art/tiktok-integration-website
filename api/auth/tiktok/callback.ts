@@ -15,11 +15,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const error = req.query.error as string | undefined
 
   if (error) {
-    return res.redirect(302, `${SITE_URL}/start.html#signin?error=${encodeURIComponent(error)}`)
+    return res.redirect(302, `${SITE_URL}/start#signin?error=${encodeURIComponent(error)}`)
   }
 
   if (!code) {
-    return res.redirect(302, `${SITE_URL}/start.html#signin?error=missing_code`)
+    return res.redirect(302, `${SITE_URL}/start#signin?error=missing_code`)
   }
 
   if (!CLIENT_KEY || !CLIENT_SECRET) {
@@ -47,7 +47,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!tokenRes.ok || tokenData.error || !tokenData.access_token) {
       console.error('TikTok token error', tokenData)
-      return res.redirect(302, `${SITE_URL}/start.html#signin?error=token_failed`)
+      return res.redirect(302, `${SITE_URL}/start#signin?error=token_failed`)
     }
 
     const accessToken = tokenData.access_token
@@ -74,7 +74,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!userRes.ok || !user) {
       console.error('TikTok user info error', userData)
-      return res.redirect(302, `${SITE_URL}/start.html#signin?error=profile_failed`)
+      return res.redirect(302, `${SITE_URL}/start#signin?error=profile_failed`)
     }
 
     const profile = {
@@ -100,12 +100,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const target =
       mode === 'connect'
-        ? `${SITE_URL}/dashboard.html#home?tiktok=${payload}`
-        : `${SITE_URL}/dashboard.html#home?tiktok=${payload}`
+        ? `${SITE_URL}/dashboard#home?tiktok=${payload}`
+        : `${SITE_URL}/dashboard#home?tiktok=${payload}`
 
     return res.redirect(302, target)
   } catch (err) {
     console.error('TikTok callback error', err)
-    return res.redirect(302, `${SITE_URL}/start.html#signin?error=server_error`)
+    return res.redirect(302, `${SITE_URL}/start#signin?error=server_error`)
   }
 }
