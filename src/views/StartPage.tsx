@@ -31,7 +31,7 @@ export function StartPage() {
         {user && (
           <div className="notice">
             You’re logged in as <strong>{user.tiktok ? `@${user.tiktok.username}` : user.email}</strong>.
-            <a href="/dashboard.html#home">Go to dashboard <IconArrow size={14} /></a>
+            <a href="/dashboard#home">Go to dashboard <IconArrow size={14} /></a>
           </div>
         )}
 
@@ -60,7 +60,7 @@ function EmailForm({ mode }: { mode: Mode }) {
     setBusy(true)
     setTimeout(() => {
       up ? actions.signUpEmail(name.trim(), email.trim()) : actions.signInEmail(email.trim())
-      location.href = '/dashboard.html#home'
+      location.href = '/dashboard#home'
     }, 700)
   }
 
@@ -114,10 +114,8 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 function TikTokConsent({ mode }: { mode: Mode }) {
   const [busy, setBusy] = useState(false)
 
-  // Real TikTok Login Kit
   const authorize = () => {
     setBusy(true)
-    // Redirect to our Netlify function → TikTok authorization page
     location.href = `/api/auth/tiktok?mode=${mode}`
   }
 
