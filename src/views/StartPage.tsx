@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Logo } from '../components/Brand'
 import { IconArrow, IconBack, IconCheck, IconNote } from '../components/Icons'
 import { actions, go, useHash, useStore } from '../lib'
@@ -15,9 +15,25 @@ export function StartPage() {
     hash === 'signin_usingTiktok' ||
     hash === 'connect_TiktokSandbox'
 
+  // If already logged in → go straight to dashboard (unless mid TikTok consent)
+  useEffect(() => {
+    if (user && !isTikTok) {
+      location.replace('/dashboard#home')
+    }
+  }, [user, isTikTok])
+
   let mode: Mode = 'signup'
   if (hash.startsWith('signin')) mode = 'signin'
   else if (hash.startsWith('connect')) mode = 'connect'
+
+  // Avoid flash of start form while redirecting
+  if (user && !isTikTok) {
+    return (
+      <div className="page start" style={{ display: 'grid', placeItems: 'center', minHeight: '100vh' }}>
+        <p className="muted mono">Opening dashboard…</p>
+      </div>
+    )
+  }
 
   return (
     <div className="page start">
@@ -36,13 +52,6 @@ export function StartPage() {
       </aside>
 
       <main className="start-main">
-        {user && !isTikTok && (
-          <div className="notice">
-            You’re logged in as <strong>{user.tiktok ? `@${user.tiktok.username}` : user.email}</strong>.
-            <a href="/dashboard#home">Go to dashboard <IconArrow size={14} /></a>
-          </div>
-        )}
-
         {isTikTok ? (
           <TikTokConsent mode={mode} sandbox={isSandbox} />
         ) : (
@@ -136,10 +145,8 @@ function TikTokConsent({ mode, sandbox }: { mode: Mode; sandbox?: boolean }) {
   const authorize = () => {
     setBusy(true)
     if (sandbox) {
-      // Real Sandbox Login Kit
       location.href = `/api/auth/tiktok?mode=connect&sandbox=1`
     } else {
-      // Real Production Login Kit
       location.href = `/api/auth/tiktok?mode=${mode}`
     }
   }
