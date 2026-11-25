@@ -33,13 +33,14 @@ export function DashboardPage() {
     }
   }, [])
 
+  // No account → go to /start (not start.html)
   useEffect(() => {
-    if (!user) {
-      const t = setTimeout(() => {
-        if (!useStore().user) location.replace('/start#signin')
-      }, 400)
-      return () => clearTimeout(t)
-    }
+    if (user) return
+    // Allow a brief moment for OAuth payload to apply user
+    const t = setTimeout(() => {
+      if (!useStore().user) location.replace('/start')
+    }, 300)
+    return () => clearTimeout(t)
   }, [user])
 
   useEffect(() => {
@@ -47,12 +48,14 @@ export function DashboardPage() {
     window.scrollTo(0, 0)
   }, [hash])
 
-  if (!user) return null
+  if (!user) {
+    return (
+      <div className="page dash" style={{ display: 'grid', placeItems: 'center', minHeight: '100vh' }}>
+        <p className="muted mono">Checking account…</p>
+      </div>
+    )
+  }
 
-  // Routing:
-  // #home #link #saved #settings
-  // #link_tiktoklink  → preview after paste
-  // #saved_<videoId>  → saved video detail
   const section = hash.split('_')[0]
   let view
   if (hash === 'link_tiktoklink' || hash.startsWith('link_')) {
